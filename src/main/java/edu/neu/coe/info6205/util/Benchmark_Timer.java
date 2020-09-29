@@ -1,13 +1,20 @@
-/*
- * Copyright (c) 2018. Phasmid Software
- */
-
 package edu.neu.coe.info6205.util;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.math.*;
+
+
+
+import java.util.Random;
+
+
+import edu.neu.coe.info6205.sort.simple.InsertionSort;
 
 import static edu.neu.coe.info6205.util.Utilities.formatWhole;
 
@@ -51,14 +58,13 @@ public class Benchmark_Timer<T> implements Benchmark<T> {
     @Override
     public double runFromSupplier(Supplier<T> supplier, int m) {
         logger.info("Begin run: " + description + " with " + formatWhole(m) + " runs");
-        // Warmup phase
+
         final Function<T, T> function = t -> {
             fRun.accept(t);
             return t;
         };
         new Timer().repeat(getWarmupRuns(m), supplier, function, fPre, null);
 
-        // Timed phase
         return new Timer().repeat(m, supplier, function, fPre, fPost);
     }
 
@@ -125,4 +131,161 @@ public class Benchmark_Timer<T> implements Benchmark<T> {
     private final Consumer<T> fPost;
 
     final static LazyLogger logger = new LazyLogger(Benchmark_Timer.class);
+    
+    
+
+    public static void main(String[] args) {
+        
+    	//Instantiate the class which provides the method to perform insertion sort
+    	InsertionSort sorter = new InsertionSort();
+    	
+    	//Generate series for plotting results for each type of array ordering
+
+    	//Instantiate Benchmark_Timer that invokes Timer class to perform Benchmark Test
+    	Benchmark_Timer<Integer[]> benchmarkTimer = new Benchmark_Timer<>("Benchmark Test for Insertion Array", null, (a) -> sorter.sort(a, 0, a.length), null);
+    	
+    	//Generate an ordered array for size 1000 and double it till 17000, and run benchmark test
+    	for(int i = 1000; i < 17000; i = i*2) {
+    		
+    		int fI = i; 
+    		
+    		//Implement the supplier to provide an ordered array of random elements of size i
+    		Supplier<Integer[]> supplier = new Supplier<Integer[]>() {
+
+				@Override
+				public Integer[] get() {
+					Random random = new Random();
+			    	Integer[] val = new Integer[fI];
+			    	
+			    	//Generate the random array
+			    	for(int i = 0; i < fI; i++) {
+			    		val[i] = random.nextInt(fI*100);
+			    	}
+			    	
+			    	//Sort the random array 
+			    	Arrays.sort(val);
+			    	return val;
+				}
+    			
+    		};
+    		
+    		//Gather the result for benchmark test for ordered array of size i for 10 runs
+        	double d = benchmarkTimer.runFromSupplier(supplier, 10);
+        	
+        	//Get the log for the log log graph
+
+        	
+        	System.out.println("For n : " + i + " ordered array , time taken: " + d);
+    	}
+    	
+    	System.out.println("............................................................................................");
+    	
+    	//Generate a randomly ordered array for size 1000 and double it till 17000, and run benchmark test
+    	for(int i = 1000; i < 17000; i = i*2) {
+    		int fI = i; 
+    		
+    		//Implement the supplier to provide a randomly ordered array of size i
+    		Supplier<Integer[]> supplier = new Supplier<Integer[]>() {
+
+				@Override
+				public Integer[] get() {
+					Random random = new Random();
+			    	Integer[] val = new Integer[fI];
+			    	
+			    	//Generate the random array
+			    	for(int i = 0; i < fI; i++) {
+			    		val[i] = random.nextInt(fI);
+			    	}
+			    	return val;
+				}
+    			
+    		};
+    		
+    		//Gather the result for benchmark test for randomly array of size i for 10 runs
+        	double d = benchmarkTimer.runFromSupplier(supplier, 10);
+        	
+        	//Get the log of T and n for the log log graph
+
+        	
+        	System.out.println("For n : " + i + " randomly ordered array, time taken : " + d);
+    	}
+    	
+    	System.out.println("............................................................................................");
+    	
+    	//Generate a reverse ordered array for size 1000 and double it till 17000, and run benchmark test
+    	for(int i = 1000; i < 17000; i = i*2) {
+    		int fI = i; 
+    		
+    		//Implement the supplier to provide a reverse ordered array of size n
+    		Supplier<Integer[]> supplier = new Supplier<Integer[]>() {
+
+				@Override
+				public Integer[] get() {
+					Random random = new Random();
+			    	Integer[] val = new Integer[fI];
+			    	
+			    	//Generate the random array
+			    	for(int i = 0; i < fI; i++) {
+			    		val[i] = random.nextInt(fI);
+			    	}
+			    	
+			    	//Sort it reverse 
+			    	Arrays.sort(val, Collections.reverseOrder());
+			    	return val;
+				}
+    			
+    		};
+    		
+    		//Gather the result for benchmark test for reverse ordered array of size i for 10 runs
+        	double d = benchmarkTimer.runFromSupplier(supplier, 10);
+        	
+
+        	System.out.println("For n : " + i + " reverse ordered array, time taken : " + d);
+    	}
+    	
+    	System.out.println("............................................................................................");
+    	
+    	//Generate a partially ordered array for size 1000 and double it till 17000, and run benchmark test
+    	for(int i = 1000; i < 17000; i = i*2) {
+    		int fI = i; 
+    		
+    		//Implement the supplier to provide a partially ordered array of size n
+    		Supplier<Integer[]> supplier = new Supplier<Integer[]>() {
+
+				@Override
+				public Integer[] get() {
+					Random random = new Random();
+			    	Integer[] val = new Integer[fI];
+			    	
+			    	//Generate the random array
+			    	for(int i = 0; i < fI; i++) {
+			    		val[i] = random.nextInt(fI*100);
+			    	}
+			    	
+			    	//Sort the array
+			    	Arrays.sort(val);
+			    	
+			    	//Disorder 20% of the array 
+			    	int disorderNum = (int) (0.2*fI);
+			    	
+			    	//Generate random indices to create disorder and replace it
+			    	for(int i = 0; i < disorderNum; i++) {
+			    		int index = random.nextInt(fI);
+			    		val[index] = random.nextInt(fI*100);
+			    	}
+			 
+			    	return val;
+				}
+    			
+    		};
+    		
+    		//Gather the result for benchmark test for partially ordered array of size i for 10 runs
+        	double d = benchmarkTimer.runFromSupplier(supplier, 10);
+        	
+
+        	System.out.println("For n: " + i + " partially ordered array, time taken: " + d);
+    	}
+    	
+
+    }
 }
